@@ -61,6 +61,9 @@ def contour(detection_result):
             thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
         # Draw contours on the image
+        contour_image = np.zeros_like(visualized_mask)
+        cv2.drawContours(contour_image, contours, -1, (0, 0, 255), 2)
+        cv2.imwrite("res/contour.jpg", contour_image)
         return contours
     except (AttributeError, IndexError) as e:
         print(f"Error during contour extraction: {e}")
