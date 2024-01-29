@@ -164,21 +164,27 @@ class BodyLandmarks():
         right_hip = self.get_keypoints(24)
         return left_hip, right_hip
 
-    def get_top_of_head(self):
+    def get_top_of_head(self) -> tuple[int, int]:
         """
-        Get the top of the head based on highest y-coordinate of the contour
-        And then offset it by 3% of the height of the image to account for hair 
-        /home/dapa/Documents/PAPER/JETIR2203456.pdf 
+        Get the top of the head based on the middle point of the two eyes
+        and the nearest point on the contour with some offset
         """
         # This will offset the average of people hair height
-        offset, _ = self.offset_factor(.03, .0)
-        # contours.shape = (4787, 1, 2)
-        contour_points = self.contours[:, 0, :]
+        x_offset, y_offset = self.offset_factor(.0, .05)
 
-        # Find the index point with the lowest y-coordinate in the contour
-        x_top, y_top = tuple(
-            contour_points[contour_points[:, 1].argmin()] / 1.0)
-        top_point = (int(x_top), int(y_top+offset))
+        # get the middle point of the two eyes
+        x_left_eye, y_left_eye = self.get_keypoints(2)
+        x_right_eye, y_right_eye = self.get_keypoints(5)
+
+        # Calculate the middle point of the two eyes
+        middle_point = self.calculate_middle_point(
+            (x_left_eye, y_left_eye), (x_right_eye, y_right_eye))
+        middle_point = self.apply_offset(middle_point, 0, -y_offset)
+        self.debug_points(middle_point[0], middle_point[1], (0, 0, 0))
+
+        # Get the nearest point on the contour based on the middle point of the two eyes
+        top_point = self.find_nearest_contour_point(middle_point)
+        self.debug_points(top_point[0], top_point[1], (0, 0, 0))
         return top_point
 
     def get_bottom_of_heel(self) -> tuple[tuple[int, int], tuple[int, int]]:
