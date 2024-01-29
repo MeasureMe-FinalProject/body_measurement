@@ -71,11 +71,11 @@ async def process_images(front_image: UploadFile = File(...), side_image: Upload
             status_code=500, detail="Error during contour extraction")
 
     front_landmarks = FrontBodyLandmarks(
-        height, front_detection.pose_landmarks[0], front_contours[0], front)
+        height, front_detection.pose_landmarks[0], front_contours[-1], front)
     front_landmarks.display_image("front")
 
     side_landmarks = SideBodyLandmarks(
-        height, side_detection.pose_landmarks[0], side_contours[0], side)
+        height, side_detection.pose_landmarks[0], side_contours[-1], side)
     side_landmarks.display_image("side")
     return FrontAndSideCoords(front=front_landmarks.json(), side=side_landmarks.json())
 
