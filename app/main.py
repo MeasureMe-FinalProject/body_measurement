@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+import os
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -39,21 +40,27 @@ async def post_root(text: str,):
 @app.post("/process_images", description="Inference landmarks")
 async def process_images(front_image: UploadFile = File(...), side_image: UploadFile = File(...), height: float = 0):
 
+    FRONT = f"{IMAGEDIR}{front_image.filename}"
+    SIDE = f"{IMAGEDIR}{side_image.filename}"
+
     # save the file
     front_img = await front_image.read()
-    with open(f"{IMAGEDIR}{front_image.filename}", "wb") as f:
+    with open(FRONT, "wb") as f:
         f.write(front_img)
 
     side_img = await side_image.read()
-    with open(f"{IMAGEDIR}{side_image.filename}", "wb") as f:
+    with open(SIDE, "wb") as f:
         f.write(side_img)
 
-    front = load_image(f"{IMAGEDIR}{front_image.filename}", 512)
-    side = load_image(f"{IMAGEDIR}{side_image.filename}", 512)
+    front = load_image(FRONT, 512)
+    side = load_image(SIDE, 512)
     front_detection = detect_landmarks(detector["mediapipe"], front)
     side_detection = detect_landmarks(detector["mediapipe"], side)
     front_contours = contour(front_detection)
     side_contours = contour(side_detection)
+
+    os.remove(FRONT)
+    os.remove(SIDE)
 
     if front_detection is None or side_detection is None:
         raise HTTPException(
