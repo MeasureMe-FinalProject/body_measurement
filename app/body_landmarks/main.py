@@ -15,15 +15,20 @@ class Coords(BaseModel):
 class FrontCoords(BaseModel):
     shoulder_left_coords: Coords
     shoulder_right_coords: Coords
+    sleeve_top_coords: Coords
+    elbow_coords: Coords
+    sleeve_bot_coords: Coords
     waist_start_coords: Coords
     waist_end_coords: Coords
     bust_left_coords: Coords
     bust_right_coords: Coords
     hip_left_coords: Coords
     hip_right_coords: Coords
+    pants_top_coords: Coords
+    knee_coords: Coords
+    pants_bot_coords: Coords
     top_coords: Coords
     bot_coords: Coords
-    ratio: float
 
 
 class SideCoords(BaseModel):
@@ -35,19 +40,11 @@ class SideCoords(BaseModel):
     hip_right_coords: Coords
     top_coords: Coords
     bot_coords: Coords
-    ratio: float
 
 
 class FrontAndSideCoords(BaseModel):
     front: FrontCoords
     side: SideCoords
-
-
-def calculate_distance(start: Coords, end: Coords) -> float:
-    start_array = np.array((start.x, start.y))
-    end_array = np.array((end.x, end.y))
-    distance = np.linalg.norm(end_array - start_array)
-    return float(distance)
 
 
 def find_nearest_point(points, target):
@@ -67,7 +64,7 @@ def parse_coords(start_coords: tuple[int, int], end_coords: tuple[int, int]) -> 
 
 
 class BodyLandmarks():
-    def __init__(self, height: float, keypoints, contours, image: cv2.typing.MatLike):
+    def __init__(self, keypoints, contours, image: cv2.typing.MatLike):
         """
         Initialize the BodyMeasurement instance.
 
@@ -82,19 +79,14 @@ class BodyLandmarks():
         """
         self.image = image
         self.width, self.height = self.image.shape[:2]
-        self.actual_height = height
         self.keypoints = keypoints
         self.contours = contours
-        self.ratio = self.get_ratio()
 
         self.hip_left_coords, self.hip_right_coords = self.find_hip_landmarks()
-        self.hip_width = self.calculate_hip_width()
 
         self.waist_left_coords, self.waist_right_coords = self.find_waist_landmarks()
-        self.waist_width = self.calculate_waist_circumference()
 
         self.bust_left_coords, self.bust_right_coords = self.find_bust_landmarks()
-        self.bust_width = self.calculate_bust_width()
 
         self.top_coords, self.bot_coords = self.find_top_and_bottom()
 
@@ -237,19 +229,7 @@ class BodyLandmarks():
         pass
 
     @abstractmethod
-    def calculate_waist_circumference(self):
-        pass
-
-    @abstractmethod
     def find_bust_landmarks(self) -> List[Coords]:
-        pass
-
-    @abstractmethod
-    def calculate_bust_width(self):
-        pass
-
-    @abstractmethod
-    def calculate_hip_width(self):
         pass
 
     @abstractmethod
@@ -268,10 +248,15 @@ class BodyLandmarks():
 
 
 class FrontBodyLandmarks(BodyLandmarks):
-    def __init__(self, height, keypoints, contours, image):
-        super().__init__(height, keypoints, contours, image)
+    def __init__(self, keypoints, contours, image):
+        super().__init__(keypoints, contours, image)
         self.shoulder_left_coords, self.shoulder_right_coords = self.find_shoulder_landmarks()
-        self.shoulder_width = self.calculate_shoulder_width()
+        self.sleeve_top_coords = self.get_sleeve_top()
+        self.elbow_coords = self.get_elbow()
+        self.sleeve_bot_coords = self.get_sleeve_bot()
+        self.pants_top_coords = self.get_pants_top()
+        self.knee_coords = self.get_knee()
+        self.pants_bot_coords = self.get_pants_bot()
 
     def find_shoulder_landmarks(self):
         x_offset, y_offset = self.offset_factor(.03, .01)
@@ -301,23 +286,6 @@ class FrontBodyLandmarks(BodyLandmarks):
         self.debug_points(x_end, y_end, (0, 0, 100))
         coords = parse_coords(start_point, end_point)
         return coords
-
-    def get_ratio(self) -> float:
-        x_top, y_top = self.get_top_of_head()
-        x_bot, y_bot = self.get_bottom_of_heel()
-        self.debug_points(x_top, y_top, (100, 255, 0))
-        self.debug_points(x_bot, y_bot, (100, 255, 0))
-
-        start = Coords(x=x_top, y=y_top)
-        end = Coords(x=x_bot, y=y_bot)
-        coords = [start, end]
-        distance_pixels = calculate_distance(coords[0], coords[1])
-
-        # Calculate the scale factor
-        ratio = self.actual_height / distance_pixels
-        self.draw_line(start, end, (255, 255, 0))
-
-        return ratio
 
     def find_hip_landmarks(self):
         left_hip, right_hip = self.get_hip()
@@ -386,57 +354,55 @@ class FrontBodyLandmarks(BodyLandmarks):
         coords = parse_coords(start_point, end_point)
         return coords
 
-    def calculate_waist_circumference(self) -> float | None:
-        if self.waist_right_coords is not None and self.waist_left_coords is not None:
-            self.draw_line(self.waist_left_coords, self.waist_right_coords)
-            return calculate_distance(
-                self.waist_left_coords, self.waist_right_coords) * self.ratio
+    def get_sleeve_top(self):
+        x, y = self.get_keypoints(12)
+        return Coords(x=x, y=y)
 
-        else:
-            return None
+    def get_elbow(self):
+        x, y = self.get_keypoints(14)
+        return Coords(x=x, y=y)
 
-    def calculate_shoulder_width(self):
-        if self.shoulder_right_coords is not None and self.shoulder_left_coords is not None:
-            self.draw_line(self.shoulder_left_coords,
-                           self.shoulder_right_coords)
-            return calculate_distance(self.shoulder_left_coords, self.shoulder_right_coords) * self.ratio
-        else:
-            return None
+    def get_sleeve_bot(self):
+        x, y = self.get_keypoints(16)
+        return Coords(x=x, y=y)
 
-    def calculate_bust_width(self):
-        if self.bust_right_coords is not None and self.bust_left_coords is not None:
-            self.draw_line(self.bust_left_coords, self.bust_right_coords)
-            return calculate_distance(self.bust_left_coords, self.bust_right_coords) * self.ratio / 2
-        else:
-            return None
+    def get_pants_top(self):
+        x, y = self.get_keypoints(24)
+        return Coords(x=x, y=y)
 
-    def calculate_hip_width(self):
-        if self.hip_right_coords is not None and self.hip_left_coords is not None:
-            self.draw_line(self.hip_left_coords, self.hip_right_coords)
-            return calculate_distance(self.hip_left_coords, self.hip_right_coords) * self.ratio / 2
-        else:
-            return None
+    def get_knee(self):
+        x, y = self.get_keypoints(26)
+        return Coords(x=x, y=y)
+
+    def get_pants_bot(self):
+        x, y = self.get_keypoints(28)
+        return Coords(x=x, y=y)
 
     def json(self) -> FrontCoords:
-        data = {
-            "shoulder_left_coords": self.shoulder_left_coords,
-            "shoulder_right_coords": self.shoulder_right_coords,
-            "waist_start_coords": self.waist_left_coords,
-            "waist_end_coords": self.waist_right_coords,
-            "bust_left_coords": self.bust_left_coords,
-            "bust_right_coords": self.bust_right_coords,
-            "hip_left_coords": self.hip_left_coords,
-            "hip_right_coords": self.hip_right_coords,
-            "top_coords": self.top_coords,
-            "bot_coords": self.bot_coords,
-            "ratio": self.ratio
-        }
-        return FrontCoords(**data)
+        data = FrontCoords(
+            shoulder_left_coords=self.shoulder_left_coords,
+            shoulder_right_coords=self.shoulder_right_coords,
+            sleeve_top_coords=self.sleeve_top_coords,
+            elbow_coords=self.elbow_coords,
+            sleeve_bot_coords=self.sleeve_bot_coords,
+            waist_start_coords=self.waist_left_coords,
+            waist_end_coords=self.waist_right_coords,
+            bust_left_coords=self.bust_left_coords,
+            bust_right_coords=self.bust_right_coords,
+            hip_left_coords=self.hip_left_coords,
+            hip_right_coords=self.hip_right_coords,
+            pants_top_coords=self.pants_top_coords,
+            knee_coords=self.knee_coords,
+            pants_bot_coords=self.pants_bot_coords,
+            top_coords=self.top_coords,
+            bot_coords=self.bot_coords,
+        )
+        return data
 
 
 class SideBodyLandmarks(BodyLandmarks):
-    def __init__(self, height, keypoints, contours, image):
-        super().__init__(height, keypoints, contours, image)
+    def __init__(self, keypoints, contours, image):
+        super().__init__(keypoints, contours, image)
 
     def get_bottom_of_heel(self):
         left_heel, _ = super().get_bottom_of_heel()
@@ -444,20 +410,6 @@ class SideBodyLandmarks(BodyLandmarks):
 
     def find_top_and_bottom(self) -> List[Coords]:
         return parse_coords(self.get_top_of_head(), self.get_bottom_of_heel())
-
-    def get_ratio(self) -> float:
-        x_top, y_top = self.get_top_of_head()
-        x_bot, y_bot = self.get_bottom_of_heel()
-
-        start = Coords(x=x_top, y=y_top)
-        end = Coords(x=x_bot, y=y_bot)
-        coords = [start, end]
-        distance_pixels = calculate_distance(coords[0], coords[1])
-
-        # Calculate the scale factor
-        ratio = self.actual_height / distance_pixels
-        self.draw_line(start, end, (255, 255, 0))
-        return ratio
 
     def find_bust_landmarks(self):
         left_shoulder, right_shoulder = self.get_bust()
@@ -515,18 +467,18 @@ class SideBodyLandmarks(BodyLandmarks):
         return coords
 
     def json(self) -> SideCoords:
-        data = {
-            "bust_left_coords": self.bust_left_coords,
-            "bust_right_coords": self.bust_right_coords,
-            "waist_start_coords": self.waist_left_coords,
-            "waist_end_coords": self.waist_right_coords,
-            "hip_left_coords": self.hip_left_coords,
-            "hip_right_coords": self.hip_right_coords,
-            "top_coords": self.top_coords,
-            "bot_coords": self.bot_coords,
-            "ratio": self.ratio
-        }
-        return SideCoords(**data)
+        data = SideCoords(
+            bust_left_coords=self.bust_left_coords,
+            bust_right_coords=self.bust_right_coords,
+            waist_start_coords=self.waist_left_coords,
+            waist_end_coords=self.waist_right_coords,
+            hip_left_coords=self.hip_left_coords,
+            hip_right_coords=self.hip_right_coords,
+            top_coords=self.top_coords,
+            bot_coords=self.bot_coords,
+        )
+
+        return data
 
 
 class Ratio(BaseModel):
