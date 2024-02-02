@@ -1,6 +1,6 @@
 
 import numpy as np
-from app.body_landmarks import FrontAndSideCoords, calculate_distance
+from app.body_landmarks.main import FrontAndSideCoords, calculate_distance
 
 
 class BodyMeasurement():
