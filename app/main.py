@@ -2,11 +2,13 @@ from contextlib import asynccontextmanager
 import os
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import FileResponse
+from numpy import size
 from pydantic import BaseModel
 
-from app.image_process import detect_landmarks, contour, load_image, Mediapipe
-from app.body_landmarks import FrontBodyLandmarks, SideBodyLandmarks, FrontAndSideCoords
-from app.body_measurement import BodyMeasurement
+from app.image_process.main import detect_landmarks, contour, load_image, Mediapipe
+from app.body_landmarks.main import FrontBodyLandmarks, SideBodyLandmarks, FrontAndSideCoords
+from app.body_measurement.main import BodyMeasurement
+from app.size_recommender.main import SizeRecommendationSystem
 
 detector = {}
 
@@ -23,10 +25,6 @@ IMAGEDIR = "images/"
 app = FastAPI(lifespan=lifespan)
 
 
-class AdjustedKeypoints(BaseModel):
-    keypoints: dict
-
-
 @app.get("/", description="Test")
 async def get_root():
     return {"message": "Hello World"}
@@ -38,7 +36,7 @@ async def post_root(text: str,):
 
 
 @app.post("/process_images", description="Inference landmarks")
-async def process_images(front_image: UploadFile = File(...), side_image: UploadFile = File(...), height: float = 0):
+async def process_images(front_image: UploadFile = File(...), side_image: UploadFile = File(...)):
 
     FRONT = f"{IMAGEDIR}{front_image.filename}"
     SIDE = f"{IMAGEDIR}{side_image.filename}"
@@ -71,16 +69,24 @@ async def process_images(front_image: UploadFile = File(...), side_image: Upload
             status_code=500, detail="Error during contour extraction")
 
     front_landmarks = FrontBodyLandmarks(
-        height, front_detection.pose_landmarks[0], front_contours[-1], front)
+        front_detection.pose_landmarks[0], front_contours[-1], front)
     front_landmarks.display_image("front")
 
     side_landmarks = SideBodyLandmarks(
-        height, side_detection.pose_landmarks[0], side_contours[-1], side)
+        side_detection.pose_landmarks[0], side_contours[-1], side)
     side_landmarks.display_image("side")
     return FrontAndSideCoords(front=front_landmarks.json(), side=side_landmarks.json())
 
+class MeasureReq(BaseModel):
+    actual_height: float
+    adjusted_keypoints: FrontAndSideCoords
+
 
 @app.post("/measure_result", description="Get measurement result from the adjusted keypoints")
-async def measure_result(adjusted_keypoints: FrontAndSideCoords):
-    measure_result = BodyMeasurement(keypoints=adjusted_keypoints)
-    return measure_result.measure_result()
+async def measure_result(request: MeasureReq):
+    measure_result = BodyMeasurement(
+        keypoints=request.adjusted_keypoints, height=request.actual_height)
+    measurement_result = measure_result.measure_result()
+    recommended_size = SizeRecommendationSystem(
+        measurement_result).recommend_size()
+    return {"measurement_result": measurement_result, "recommended_size": recommended_size}
