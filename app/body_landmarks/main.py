@@ -1,50 +1,12 @@
 from abc import abstractmethod
-from ast import Match
+from typing import List
+
 import cv2
 import numpy as np
-from typing import Any, List, Literal
-
 from pydantic import BaseModel
 
-
-class Coords(BaseModel):
-    x: float
-    y: float
-
-
-class FrontCoords(BaseModel):
-    shoulder_left_coords: Coords
-    shoulder_right_coords: Coords
-    sleeve_top_coords: Coords
-    elbow_coords: Coords
-    sleeve_bot_coords: Coords
-    waist_start_coords: Coords
-    waist_end_coords: Coords
-    bust_left_coords: Coords
-    bust_right_coords: Coords
-    hip_left_coords: Coords
-    hip_right_coords: Coords
-    pants_top_coords: Coords
-    knee_coords: Coords
-    pants_bot_coords: Coords
-    top_coords: Coords
-    bot_coords: Coords
-
-
-class SideCoords(BaseModel):
-    bust_left_coords: Coords
-    bust_right_coords: Coords
-    waist_start_coords: Coords
-    waist_end_coords: Coords
-    hip_left_coords: Coords
-    hip_right_coords: Coords
-    top_coords: Coords
-    bot_coords: Coords
-
-
-class FrontAndSideCoords(BaseModel):
-    front: FrontCoords
-    side: SideCoords
+from app.image_process.face_blur import anonymize_face
+from app.schemas.schema import Coords, FrontCoords, SideCoords
 
 
 def find_nearest_point(points, target):
@@ -54,17 +16,16 @@ def find_nearest_point(points, target):
     nearest_index = np.argmin(distances)
     return points[nearest_index][0]
 
-# A function that accept start_coords and end_coords as tuples then return as a dictionary
-
 
 def parse_coords(start_coords: tuple[int, int], end_coords: tuple[int, int]) -> List[Coords]:
+    """Accept start_coords and end_coords as tuples then return as a dictionary"""
     start = Coords(x=start_coords[0], y=start_coords[1])
     end = Coords(x=end_coords[0], y=end_coords[1])
     return [start, end]
 
 
 class BodyLandmarks():
-    def __init__(self, keypoints, contours, image: cv2.typing.MatLike):
+    def __init__(self, keypoints, contours, image: cv2.typing.MatLike, debug: bool):
         """
         Initialize the BodyMeasurement instance.
 
@@ -77,11 +38,13 @@ class BodyLandmarks():
         Returns:
         None
         """
-        self.image = image
-        self.width, self.height = self.image.shape[:2]
+        self.image = anonymize_face(image, keypoints)
+        self.process_image = self.image.copy()
+
+        self.width, self.height = self.process_image.shape[:2]
         self.keypoints = keypoints
         self.contours = contours
-
+        self.debug = debug
         self.hip_left_coords, self.hip_right_coords = self.find_hip_landmarks()
 
         self.waist_left_coords, self.waist_right_coords = self.find_waist_landmarks()
@@ -91,6 +54,11 @@ class BodyLandmarks():
         self.top_coords, self.bot_coords = self.find_top_and_bottom()
 
         # HELPER FUNCTIONS
+
+    def get_image(self, img_path: str) -> str:
+        path = img_path.split("/")[1]
+        cv2.imwrite(img_path, self.image)
+        return path
 
     def offset_factor(self, x_offset_ratio, y_offset_ratio):
         x_offset = int(self.width * x_offset_ratio)
@@ -121,22 +89,21 @@ class BodyLandmarks():
     def get_keypoints(self, idx):
         landmark = self.keypoints[idx]
         key = int(
-            landmark.x * self.image.shape[1]), int(landmark.y * self.image.shape[0])
+            landmark.x * self.process_image.shape[1]), int(landmark.y * self.process_image.shape[0])
         return key[0], key[1]
 
         ############################################################################################################
 
     # DEBUGGER FUNCTIONS
     def debug_points(self, x, y, color=(0, 255, 0)):
-        cv2.circle(self.image, (int(x), int(y)), 2, color, 2)
-        pass
+        if self.debug:
+            cv2.circle(self.process_image, (int(x), int(y)), 2, color, 2)
 
     def draw_line(self, start: Coords, end: Coords, color=(0, 255, 0)):
-
-        start_coords = (int(start.x), int(start.y))
-        end_coords = (int(end.x), int(end.y))
-        cv2.line(self.image, start_coords, end_coords, color, 2)
-        pass
+        if self.debug:
+            start_coords = (int(start.x), int(start.y))
+            end_coords = (int(end.x), int(end.y))
+            cv2.line(self.process_image, start_coords, end_coords, color, 2)
 
         ############################################################################################################
 
@@ -172,7 +139,7 @@ class BodyLandmarks():
         middle_point = self.calculate_middle_point(
             (x_left_eye, y_left_eye), (x_right_eye, y_right_eye))
         middle_point = self.apply_offset(middle_point, 0, -y_offset)
-        self.debug_points(middle_point[0], middle_point[1], (0, 0, 0))
+        # self.debug_points(middle_point[0], middle_point[1], (0, 0, 0))
 
         # Get the nearest point on the contour based on the middle point of the two eyes
         top_point = self.find_nearest_contour_point(middle_point)
@@ -207,8 +174,8 @@ class BodyLandmarks():
 
         left_waist = self.apply_offset(middle_point, x_offset, -y_offset)
         right_waist = self.apply_offset(middle_point, -x_offset, -y_offset)
-        self.debug_points(left_waist[0], left_waist[1], (255, 255, 0))
-        self.debug_points(right_waist[0], right_waist[1], (255, 255, 0))
+        # self.debug_points(left_waist[0], left_waist[1], (255, 255, 0))
+        # self.debug_points(right_waist[0], right_waist[1], (255, 255, 0))
 
         left_edge_point = self.find_nearest_contour_point(left_waist)
         right_edge_point = self.find_nearest_contour_point(right_waist)
@@ -244,12 +211,13 @@ class BodyLandmarks():
         pass
 
     def display_image(self, filename):
-        cv2.imwrite(filename=f"res/{filename}_result.jpg", img=self.image)
+        cv2.imwrite(
+            filename=f"res/{filename}_result.jpg", img=self.process_image)
 
 
 class FrontBodyLandmarks(BodyLandmarks):
-    def __init__(self, keypoints, contours, image):
-        super().__init__(keypoints, contours, image)
+    def __init__(self, keypoints, contours, image, debug: bool = False):
+        super().__init__(keypoints, contours, image, debug=debug)
         self.shoulder_left_coords, self.shoulder_right_coords = self.find_shoulder_landmarks()
         self.sleeve_top_coords = self.get_sleeve_top()
         self.elbow_coords = self.get_elbow()
@@ -356,26 +324,32 @@ class FrontBodyLandmarks(BodyLandmarks):
 
     def get_sleeve_top(self):
         x, y = self.get_keypoints(12)
+        self.debug_points(x, y, color=(255, 255, 0))
         return Coords(x=x, y=y)
 
     def get_elbow(self):
         x, y = self.get_keypoints(14)
+        self.debug_points(x, y, color=(255, 255, 0))
         return Coords(x=x, y=y)
 
     def get_sleeve_bot(self):
         x, y = self.get_keypoints(16)
+        self.debug_points(x, y, color=(255, 255, 0))
         return Coords(x=x, y=y)
 
     def get_pants_top(self):
         x, y = self.get_keypoints(24)
+        self.debug_points(x, y, color=(255, 255, 0))
         return Coords(x=x, y=y)
 
     def get_knee(self):
         x, y = self.get_keypoints(26)
+        self.debug_points(x, y, color=(255, 255, 0))
         return Coords(x=x, y=y)
 
     def get_pants_bot(self):
         x, y = self.get_keypoints(28)
+        self.debug_points(x, y, color=(255, 255, 0))
         return Coords(x=x, y=y)
 
     def json(self) -> FrontCoords:
@@ -401,8 +375,8 @@ class FrontBodyLandmarks(BodyLandmarks):
 
 
 class SideBodyLandmarks(BodyLandmarks):
-    def __init__(self, keypoints, contours, image):
-        super().__init__(keypoints, contours, image)
+    def __init__(self, keypoints, contours, image, debug: bool = False):
+        super().__init__(keypoints, contours, image, debug=debug)
 
     def get_bottom_of_heel(self):
         left_heel, _ = super().get_bottom_of_heel()
