@@ -171,12 +171,12 @@ class BodyLandmarks():
         middle_point = ((M1[0] + M2[0]) / 2, (M1[1] + M2[1]) / 2)
         self.debug_points(middle_point[0], middle_point[1], (255, 255, 0))
 
-        left_waist = self.apply_offset(middle_point, x_offset, -y_offset)
+        # left_waist = self.apply_offset(middle_point, x_offset, -y_offset)
         right_waist = self.apply_offset(middle_point, -x_offset, -y_offset)
         # self.debug_points(left_waist[0], left_waist[1], (255, 255, 0))
         # self.debug_points(right_waist[0], right_waist[1], (255, 255, 0))
 
-        left_edge_point = self.find_nearest_contour_point(left_waist)
+        # left_edge_point = self.find_nearest_contour_point(left_waist)
         right_edge_point = self.find_nearest_contour_point(right_waist)
 
         x_start, y_start = int(middle_point[0]), int(middle_point[1])
