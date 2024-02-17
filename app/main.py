@@ -12,7 +12,7 @@ from app.body_measurement.main import BodyMeasurement
 from app.image_process.main import contour, detect_landmarks, load_image
 from app.image_process.mediapipe import Mediapipe
 from app.schemas.body_landmarks import FrontAndSideCoords
-from app.size_recommender.main import SizeRecommendationSystem
+from app.size_recommender.main import ClothingType, Gender, SizeRecommendationSystem
 
 detector = {}
 
@@ -88,6 +88,8 @@ async def process_images(front_image: UploadFile = File(...), side_image: Upload
 
 class MeasureReq(BaseModel):
     actual_height: float
+    gender: Gender
+    clothing_type: ClothingType
     adjusted_keypoints: FrontAndSideCoords
 
 
@@ -97,5 +99,9 @@ async def calculate_measure_result(request: MeasureReq):
         keypoints=request.adjusted_keypoints, height=request.actual_height)
     measurement_result = measure_result.measure_result()
     recommended_size = SizeRecommendationSystem(
-        measurement_result).recommend_size()
+        gender=request.gender,
+        clothing_type=request.clothing_type,
+        customer_measurements=measurement_result
+    ).recommend_size()
+
     return {"measurement_result": measurement_result, "recommended_size": recommended_size}

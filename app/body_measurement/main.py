@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from app.schemas.body_landmarks import Coords, FrontAndSideCoords
 
 
-class MeasureResult(BaseModel):
+class MeasureChart(BaseModel):
     def __getitem__(self, item):
         return getattr(self, item)
 
@@ -125,7 +125,7 @@ class BodyMeasurement():
             return 0.0
 
     def measure_result(self):
-        data = MeasureResult(
+        data = MeasureChart(
             height=self.height,
             bust_circumference=self.calculate_bust_circumference(),
             waist_circumference=self.calculate_waist_circumference(),
