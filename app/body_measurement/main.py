@@ -1,7 +1,8 @@
 
 import numpy as np
 from pydantic import BaseModel
-from app.body_landmarks.main import Coords, FrontAndSideCoords
+
+from app.schemas.body_landmarks import Coords, FrontAndSideCoords
 
 
 class MeasureResult(BaseModel):

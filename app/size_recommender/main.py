@@ -1,7 +1,3 @@
-from calendar import c
-
-from matplotlib.pylab import f
-
 from app.body_measurement.main import MeasureResult
 
 

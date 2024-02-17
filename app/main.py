@@ -1,14 +1,17 @@
-from contextlib import asynccontextmanager
-import time
 import os
-from fastapi import BackgroundTasks, FastAPI, File, UploadFile, HTTPException
+import time
+from contextlib import asynccontextmanager
+
+from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-from app.body_landmarks.main import FrontBodyLandmarks, SideBodyLandmarks
 
-from app.image_process.main import detect_landmarks, contour, load_image, Mediapipe
+from app.body_landmarks.front_landmarks import FrontBodyLandmarks
+from app.body_landmarks.side_landmarks import SideBodyLandmarks
 from app.body_measurement.main import BodyMeasurement
-from app.schemas.schema import FrontAndSideCoords
+from app.image_process.main import contour, detect_landmarks, load_image
+from app.image_process.mediapipe import Mediapipe
+from app.schemas.body_landmarks import FrontAndSideCoords
 from app.size_recommender.main import SizeRecommendationSystem
 
 detector = {}
@@ -37,9 +40,8 @@ async def download_images(file_path: str, background_tasks: BackgroundTasks):
         background_tasks.add_task(cleanup, path)
         return FileResponse(path, media_type='image/jpeg')
     except Exception as e:
-        print(e)
         # Handle file not found or other errors
-        raise HTTPException(status_code=404, detail="File not found")
+        raise HTTPException(status_code=404, detail=e) from e
 
 
 @app.post("/process_images", description="Inference landmarks")
