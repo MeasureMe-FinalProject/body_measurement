@@ -2,7 +2,7 @@
 import numpy as np
 from pydantic import BaseModel
 
-from app.schemas.body_landmarks import Coords, FrontAndSideCoords
+from app.schemas.body_landmarks import Coords, FrontAndSideCoordsIn
 
 
 class MeasureChart(BaseModel):
@@ -19,7 +19,7 @@ class MeasureChart(BaseModel):
 
 
 class BodyMeasurement():
-    def __init__(self, keypoints: FrontAndSideCoords, height: float):
+    def __init__(self, keypoints: FrontAndSideCoordsIn, height: float):
         self.height = height
         self.front = keypoints.front
         self.side = keypoints.side
