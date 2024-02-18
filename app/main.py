@@ -2,12 +2,13 @@ import os
 import time
 from contextlib import asynccontextmanager
 
-from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
+from fastapi import BackgroundTasks, Depends, FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 
 from app.body_landmarks.front_landmarks import FrontBodyLandmarks
 from app.body_landmarks.side_landmarks import SideBodyLandmarks
 from app.body_measurement.main import BodyMeasurement
+from app.dependencies.content_type_checker import ContentTypeChecker
 from app.image_process.main import contour, detect_landmarks, load_image
 from app.image_process.mediapipe import Mediapipe
 from app.schemas.body_landmarks import FrontAndSideCoordsOut
@@ -44,7 +45,8 @@ async def download_images(file_path: str, background_tasks: BackgroundTasks):
         raise HTTPException(status_code=404, detail=e) from e
 
 
-@app.post("/process_images", description="Inference landmarks", response_model=FrontAndSideCoordsOut)
+@app.post("/process_images", description="Inference landmarks", response_model=FrontAndSideCoordsOut, dependencies=[Depends(ContentTypeChecker(['image/jpeg']))]
+          )
 async def process_images(front_image: UploadFile = File(...), side_image: UploadFile = File(...)):
     front_path = f"{IMAGEDIR}{time.time()}-{front_image.filename}"
     side_path = f"{IMAGEDIR}{time.time()}-{side_image.filename}"
