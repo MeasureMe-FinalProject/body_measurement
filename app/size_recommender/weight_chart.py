@@ -22,7 +22,7 @@ class WeightChart:
                                shoulder_width=0,
                                sleeve_length=0,
                                bust_circumference=0,
-                               waist_circumference=1,
+                               waist_circumference=.5,
                                hip_circumference=.75,
                                pants_length=0)
 
@@ -30,6 +30,6 @@ class WeightChart:
                               shoulder_width=0,
                               sleeve_length=0,
                               bust_circumference=0,
-                              waist_circumference=1,
+                              waist_circumference=.5,
                               hip_circumference=.75,
                               pants_length=1)
