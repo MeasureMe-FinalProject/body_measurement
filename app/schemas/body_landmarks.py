@@ -37,7 +37,12 @@ class SideCoords(BaseModel):
     bot_coords: Coords
 
 
-class FrontAndSideCoords(BaseModel):
+class FrontAndSideCoordsIn(BaseModel):
+    front: FrontCoords
+    side: SideCoords
+
+
+class FrontAndSideCoordsOut(BaseModel):
     front: FrontCoords
     side: SideCoords
     front_path: str

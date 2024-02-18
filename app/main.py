@@ -4,15 +4,15 @@ from contextlib import asynccontextmanager
 
 from fastapi import BackgroundTasks, FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
 
 from app.body_landmarks.front_landmarks import FrontBodyLandmarks
 from app.body_landmarks.side_landmarks import SideBodyLandmarks
 from app.body_measurement.main import BodyMeasurement
 from app.image_process.main import contour, detect_landmarks, load_image
 from app.image_process.mediapipe import Mediapipe
-from app.schemas.body_landmarks import FrontAndSideCoords
-from app.size_recommender.main import ClothingType, Gender, SizeRecommendationSystem
+from app.schemas.body_landmarks import FrontAndSideCoordsOut
+from app.schemas.size_recommendation import MeasureResultIn, MeasureResultOut
+from app.size_recommender.main import SizeRecommendationSystem
 
 detector = {}
 
@@ -44,7 +44,7 @@ async def download_images(file_path: str, background_tasks: BackgroundTasks):
         raise HTTPException(status_code=404, detail=e) from e
 
 
-@app.post("/process_images", description="Inference landmarks")
+@app.post("/process_images", description="Inference landmarks", response_model=FrontAndSideCoordsOut)
 async def process_images(front_image: UploadFile = File(...), side_image: UploadFile = File(...)):
     front_path = f"{IMAGEDIR}{time.time()}-{front_image.filename}"
     side_path = f"{IMAGEDIR}{time.time()}-{side_image.filename}"
@@ -83,25 +83,20 @@ async def process_images(front_image: UploadFile = File(...), side_image: Upload
     side_landmarks.display_image("side")
     side_path = side_landmarks.get_image(side_path)
 
-    return FrontAndSideCoords(front=front_landmarks.json(), side=side_landmarks.json(), front_path=front_path, side_path=side_path)
+    return FrontAndSideCoordsOut(front=front_landmarks.json(), side=side_landmarks.json(), front_path=front_path, side_path=side_path)
 
 
-class MeasureReq(BaseModel):
-    actual_height: float
-    gender: Gender
-    clothing_type: ClothingType
-    adjusted_keypoints: FrontAndSideCoords
-
-
-@app.post("/measure_result", description="Get measurement result from the adjusted keypoints")
-async def calculate_measure_result(request: MeasureReq):
+@app.post("/measure_result", description="Get measurement result from the adjusted keypoints",  response_model=MeasureResultOut)
+async def calculate_measure_result(request: MeasureResultIn):
     measure_result = BodyMeasurement(
-        keypoints=request.adjusted_keypoints, height=request.actual_height)
+        keypoints=request.adjusted_keypoints,
+        height=request.actual_height)
     measurement_result = measure_result.measure_result()
+
     recommended_size = SizeRecommendationSystem(
         gender=request.gender,
         clothing_type=request.clothing_type,
         customer_measurements=measurement_result
     ).recommend_size()
 
-    return {"measurement_result": measurement_result, "recommended_size": recommended_size}
+    return MeasureResultOut(measurement_result=measurement_result, size_recommendation=recommended_size)
