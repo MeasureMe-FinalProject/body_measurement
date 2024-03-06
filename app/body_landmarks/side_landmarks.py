@@ -33,7 +33,7 @@ class SideBodyLandmarks(BodyLandmarks):
         left_shoulder, right_shoulder = self.get_bust()
 
         # Apply offset to shoulder keypoints
-        x_offset, y_offset = self.offset_factor(.02, .07)
+        x_offset, y_offset = self.offset_factor(0.02, 0.07)
         back_bust = self.apply_offset(left_shoulder, -x_offset, y_offset)
         front_bust = self.apply_offset(left_shoulder, x_offset, y_offset)
         # self.debug_points(back_bust[0], back_bust[1], color=(255, 255, 0))
@@ -86,13 +86,13 @@ class SideBodyLandmarks(BodyLandmarks):
 
     def json(self) -> SideCoords:
         data = SideCoords(
-            bust_left_coords=self.bust_left_coords,
-            bust_right_coords=self.bust_right_coords,
+            top_coords=self.top_coords,
+            bust_start_coords=self.bust_left_coords,
+            bust_end_coords=self.bust_right_coords,
             waist_start_coords=self.waist_left_coords,
             waist_end_coords=self.waist_right_coords,
-            hip_left_coords=self.hip_left_coords,
-            hip_right_coords=self.hip_right_coords,
-            top_coords=self.top_coords,
+            hip_start_coords=self.hip_left_coords,
+            hip_end_coords=self.hip_right_coords,
             bot_coords=self.bot_coords,
         )
 

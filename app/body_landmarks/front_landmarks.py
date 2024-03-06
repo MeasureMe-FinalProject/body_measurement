@@ -1,4 +1,3 @@
-
 from typing import List
 
 from app.body_landmarks.body_landmarks import BodyLandmarks
@@ -22,7 +21,10 @@ class FrontBodyLandmarks(BodyLandmarks):
 
     def __init__(self, keypoints, contours, image, debug: bool = False):
         super().__init__(keypoints, contours, image, debug=debug)
-        self.shoulder_left_coords, self.shoulder_right_coords = self.find_shoulder_landmarks()
+        (
+            self.shoulder_left_coords,
+            self.shoulder_right_coords,
+        ) = self.find_shoulder_landmarks()
         self.sleeve_top_coords = self.get_sleeve_top()
         self.elbow_coords = self.get_elbow()
         self.sleeve_bot_coords = self.get_sleeve_bot()
@@ -31,7 +33,7 @@ class FrontBodyLandmarks(BodyLandmarks):
         self.pants_bot_coords = self.get_pants_bot()
 
     def find_shoulder_landmarks(self):
-        x_offset, y_offset = self.offset_factor(.03, .01)
+        x_offset, y_offset = self.offset_factor(0.03, 0.01)
 
         # 11 and 12
         left_shoulder = self.get_keypoints(12)
@@ -106,7 +108,7 @@ class FrontBodyLandmarks(BodyLandmarks):
         left_shoulder, right_shoulder = self.get_bust()
 
         # Apply offset to shoulder keypoints
-        x_offset, y_offset = self.offset_factor(.0, .04)
+        x_offset, y_offset = self.offset_factor(0.0, 0.04)
         left_shoulder = self.apply_offset(left_shoulder, x_offset, y_offset)
         right_shoulder = self.apply_offset(right_shoulder, x_offset, y_offset)
 
@@ -158,21 +160,21 @@ class FrontBodyLandmarks(BodyLandmarks):
 
     def json(self) -> FrontCoords:
         data = FrontCoords(
-            shoulder_left_coords=self.shoulder_left_coords,
-            shoulder_right_coords=self.shoulder_right_coords,
+            top_coords=self.top_coords,
+            shoulder_start_coords=self.shoulder_left_coords,
+            shoulder_end_coords=self.shoulder_right_coords,
             sleeve_top_coords=self.sleeve_top_coords,
             elbow_coords=self.elbow_coords,
             sleeve_bot_coords=self.sleeve_bot_coords,
+            bust_start_coords=self.bust_left_coords,
+            bust_end_coords=self.bust_right_coords,
             waist_start_coords=self.waist_left_coords,
             waist_end_coords=self.waist_right_coords,
-            bust_left_coords=self.bust_left_coords,
-            bust_right_coords=self.bust_right_coords,
-            hip_left_coords=self.hip_left_coords,
-            hip_right_coords=self.hip_right_coords,
+            hip_start_coords=self.hip_left_coords,
+            hip_end_coords=self.hip_right_coords,
             pants_top_coords=self.pants_top_coords,
             knee_coords=self.knee_coords,
             pants_bot_coords=self.pants_bot_coords,
-            top_coords=self.top_coords,
             bot_coords=self.bot_coords,
         )
         return data
