@@ -1,17 +1,15 @@
 # 
-FROM python:3.9
+FROM python:3.9-slim
 
 # 
 WORKDIR /app
 
-# 
-COPY ./requirements.txt /app/requirements.txt
-
-# 
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
+RUN apt-get update -y
+RUN apt install libgl1-mesa-glx -y
+RUN apt-get install 'ffmpeg' -y
 
 #
-COPY ./app /app/
+COPY . /app
 
 # 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
+RUN pip install --no-cache-dir --upgrade -r requirements.txt
