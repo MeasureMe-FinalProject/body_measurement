@@ -2,7 +2,6 @@ from fastapi import APIRouter
 
 from app.body_measurement.main import MeasureChart
 
-
 class SizeChart:
     MAN_SIZE_CHART = {
         "XS": MeasureChart(
@@ -97,6 +96,45 @@ class SizeChart:
             shoulder_width=44,
             sleeve_length=59,
             pants_length=99.5,
+        ),
+    }
+
+    JACKET = {
+        "S": MeasureChart(
+            height=0,
+            shoulder_width=45,
+            sleeve_length=59,
+            bust_circumference=112,
+            waist_circumference=0,
+            hip_circumference=0,
+            pants_length=0,
+        ),
+        "M": MeasureChart(
+            height=0,
+            shoulder_width=46,
+            sleeve_length=60,
+            bust_circumference=116,
+            waist_circumference=0,
+            hip_circumference=0,
+            pants_length=0,
+        ),
+        "L": MeasureChart(
+            height=0,
+            shoulder_width=48,
+            sleeve_length=61,
+            bust_circumference=120,
+            waist_circumference=0,
+            hip_circumference=0,
+            pants_length=0,
+        ),
+        "XL": MeasureChart(
+            height=0,
+            shoulder_width=50,
+            sleeve_length=61.5,
+            bust_circumference=126,
+            waist_circumference=0,
+            hip_circumference=0,
+            pants_length=0,
         ),
     }
 
