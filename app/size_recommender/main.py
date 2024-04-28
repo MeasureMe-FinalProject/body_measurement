@@ -1,4 +1,5 @@
 from typing import Literal
+
 from app.body_measurement.main import MeasureChart
 from app.size_recommender.size_chart import SizeChart
 from app.size_recommender.weight_chart import WeightChart
@@ -8,7 +9,13 @@ Gender = Literal["MALE", "FEMALE"]
 
 
 class SizeRecommendationSystem:
-    def __init__(self, gender: Gender, clothing_type: ClothingType, customer_measurements: MeasureChart):
+    def __init__(
+        self,
+        gender: Gender,
+        clothing_type: ClothingType,
+        customer_measurements: MeasureChart,
+    ):
+        self.customer_measurements = customer_measurements
 
         if gender == "MALE":
             self.size_chart = SizeChart.MAN_SIZE_CHART
@@ -17,26 +24,26 @@ class SizeRecommendationSystem:
         else:
             raise ValueError("Invalid gender")
 
-        if clothing_type == 'T_SHIRT':
+        if clothing_type == "T_SHIRT":
             self.weights = WeightChart.T_SHIRT
-        elif clothing_type == 'LONG_SHIRT':
+        elif clothing_type == "LONG_SHIRT":
             self.weights = WeightChart.LONG_SHIRT
-        elif clothing_type == 'SHORT_PANTS':
+        elif clothing_type == "SHORT_PANTS":
             self.weights = WeightChart.SHORT_PANTS
-        elif clothing_type == 'LONG_PANTS':
+        elif clothing_type == "LONG_PANTS":
             self.weights = WeightChart.LONG_PANTS
+        elif clothing_type == "JACKET":
+            self.weights = WeightChart.JACKET
+            self.size_chart = SizeChart.JACKET
         else:
             raise ValueError("Invalid clothing type")
-
-        self.customer_measurements = customer_measurements
 
     def calculate_deviation(self, measurements: MeasureChart):
         deviations: dict = {}
 
         for size, size_measurements in self.size_chart.items():
             deviations[size] = sum(
-                self.weights[key] *
-                abs(measurements[key] - size_measurements[key])
+                self.weights[key] * abs(measurements[key] - size_measurements[key])
                 for key, val in measurements
             )
         return deviations
