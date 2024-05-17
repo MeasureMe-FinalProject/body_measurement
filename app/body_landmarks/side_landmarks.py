@@ -84,7 +84,7 @@ class SideBodyLandmarks(BodyLandmarks):
         coords = [start_point, end_point]
         return coords
 
-    def json(self) -> SideCoords:
+    def convert_json(self) -> SideCoords:
         data = SideCoords(
             top_coords=self.top_coords,
             bust_start_coords=self.bust_left_coords,

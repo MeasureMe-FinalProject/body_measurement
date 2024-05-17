@@ -158,7 +158,7 @@ class FrontBodyLandmarks(BodyLandmarks):
         self.debug_points(x, y, color=(255, 255, 0))
         return Coords(x=x, y=y)
 
-    def json(self) -> FrontCoords:
+    def convert_json(self) -> FrontCoords:
         data = FrontCoords(
             top_coords=self.top_coords,
             shoulder_start_coords=self.shoulder_left_coords,
