@@ -33,7 +33,7 @@ def contour(detection_result):
     if detection_result.segmentation_masks is None:
         raise HTTPException(
             status_code=HTTPStatus.UNPROCESSABLE_ENTITY,
-            detail="No body segmentation mask found.",
+            detail="Body not found",
         )
     try:
         segmentation_mask = detection_result.segmentation_masks[0].numpy_view()

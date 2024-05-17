@@ -56,6 +56,12 @@ async def download_images(file_path: str, background_tasks: BackgroundTasks):
 async def process_images(
     front_image: UploadFile = File(...), side_image: UploadFile = File(...)
 ):
+    # Check if the 'mediapipe' detector is initialized
+    if "mediapipe" not in detector:
+        raise HTTPException(
+            status_code=503, detail="Service unavailable, detector not initialized"
+        )
+
     front_path = f"{IMAGEDIR}{time.time()}-{front_image.filename}"
     side_path = f"{IMAGEDIR}{time.time()}-{side_image.filename}"
 
@@ -94,8 +100,8 @@ async def process_images(
     side_path = side_landmarks.get_image(side_path)
 
     return FrontAndSideCoordsOut(
-        front=front_landmarks.json(),
-        side=side_landmarks.json(),
+        front=front_landmarks.convert_json(),
+        side=side_landmarks.convert_json(),
         front_path=front_path,
         side_path=side_path,
     )
