@@ -4,7 +4,7 @@ from app.body_measurement.main import MeasureChart
 from app.size_recommender.size_chart import SizeChart
 from app.size_recommender.weight_chart import WeightChart
 
-ClothingType = Literal["T_SHIRT", "LONG_SHIRT", "SHORT_PANTS", "LONG_PANTS"]
+ClothingType = Literal["T_SHIRT", "LONG_SHIRT", "SHORT_PANTS", "LONG_PANTS", "JACKET"]
 Gender = Literal["MALE", "FEMALE"]
 
 
