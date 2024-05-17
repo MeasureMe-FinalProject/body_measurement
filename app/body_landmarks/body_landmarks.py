@@ -202,7 +202,8 @@ class BodyLandmarks():
     def find_top_and_bottom(self) -> List[Coords]:
         pass
 
-    def json(self):
+    @abstractmethod
+    def convert_json(self):
         pass
 
     def display_image(self, filename):
