@@ -9,7 +9,7 @@ from app.image_process.face_blur import anonymize_face
 from app.schemas.body_landmarks import Coords
 
 
-class BodyLandmarks():
+class BodyLandmarks:
     """
     Represents landmarks detected on the human body.
 
@@ -87,8 +87,10 @@ class BodyLandmarks():
 
     def get_keypoints(self, idx):
         landmark = self.keypoints[idx]
-        key = int(
-            landmark.x * self.process_image.shape[1]), int(landmark.y * self.process_image.shape[0])
+        key = (
+            int(landmark.x * self.process_image.shape[1]),
+            int(landmark.y * self.process_image.shape[0]),
+        )
         return key[0], key[1]
 
         ############################################################################################################
@@ -108,8 +110,8 @@ class BodyLandmarks():
 
     def get_bust(self) -> tuple[tuple[int, int], tuple[int, int]]:
         """
-        Find the bust from shoulders keypoints based on 
-        /home/dapa/Documents/PAPER/JETIR2203456.pdf 
+        Find the bust from shoulders keypoints based on
+        /home/dapa/Documents/PAPER/JETIR2203456.pdf
         """
         # 11 and 12
         left_shoulder = self.get_keypoints(11)
@@ -128,7 +130,7 @@ class BodyLandmarks():
         and the nearest point on the contour with some offset
         """
         # This will offset the average of people hair height
-        x_offset, y_offset = self.offset_factor(.0, .05)
+        x_offset, y_offset = self.offset_factor(0.0, 0.05)
 
         # get the middle point of the two eyes
         x_left_eye, y_left_eye = self.get_keypoints(2)
@@ -136,7 +138,8 @@ class BodyLandmarks():
 
         # Calculate the middle point of the two eyes
         middle_point = self.calculate_middle_point(
-            (x_left_eye, y_left_eye), (x_right_eye, y_right_eye))
+            (x_left_eye, y_left_eye), (x_right_eye, y_right_eye)
+        )
         middle_point = self.apply_offset(middle_point, 0, -y_offset)
         # self.debug_points(middle_point[0], middle_point[1], (0, 0, 0))
 
@@ -148,7 +151,7 @@ class BodyLandmarks():
     def get_bottom_of_heel(self) -> tuple[tuple[int, int], tuple[int, int]]:
         """
         Front: Get the bottom of the heel based on the middle point of the two heel keypoints
-        Side: Get the bottom of the heel based on the left heel keypoints    
+        Side: Get the bottom of the heel based on the left heel keypoints
         """
         left_heel = self.get_keypoints(29)
         right_heel = self.get_keypoints(30)
@@ -156,10 +159,10 @@ class BodyLandmarks():
 
     def find_waist_landmarks(self):
         """
-        Get the center of the waist by getting the 
+        Get the center of the waist by getting the
         middle point of the 4 keypoints that are trapezoid shaped
         """
-        x_offset, y_offset = self.offset_factor(.01, .0)
+        x_offset, y_offset = self.offset_factor(0.01, 0.0)
         x1, y1 = self.get_keypoints(23)
         x2, y2 = self.get_keypoints(24)
         x3, y3 = self.get_keypoints(12)
@@ -207,5 +210,4 @@ class BodyLandmarks():
         pass
 
     def display_image(self, filename):
-        cv2.imwrite(
-            filename=f"res/{filename}_result.jpg", img=self.process_image)
+        cv2.imwrite(filename=f"res/{filename}_result.jpg", img=self.process_image)

@@ -1,3 +1,5 @@
+from typing import Optional
+
 import numpy as np
 from pydantic import BaseModel
 
@@ -10,7 +12,9 @@ class MeasureChart(BaseModel):
 
     height: float
     bust_circumference: float
+    chest_width: Optional[float] = 0.0
     waist_circumference: float
+    waist_width: Optional[float] = 0.0
     hip_circumference: float
     shoulder_width: float
     sleeve_length: float
@@ -65,7 +69,19 @@ class BodyMeasurement:
         c = 2 * np.pi * np.sqrt((np.power(long_axis, 2) + np.power(short_axis, 2)) / 2)
         return c
 
-    def calculate_waist_circumference(self) -> float:
+    def calculate_chest_width(self) -> float:
+        if self.front is not None and self.side is not None:
+            long_axis = (
+                self.calculate_distance(
+                    self.front.bust_start_coords, self.front.bust_end_coords
+                )
+                * self.front_ratio
+            )
+            return long_axis
+        else:
+            return 0.0
+
+    def calculate_waist_width(self) -> float:
         if self.front is not None and self.side is not None:
             long_axis = (
                 self.calculate_distance(
@@ -73,6 +89,13 @@ class BodyMeasurement:
                 )
                 * self.front_ratio
             )
+            return long_axis
+        else:
+            return 0.0
+
+    def calculate_waist_circumference(self) -> float:
+        if self.front is not None and self.side is not None:
+            long_axis = self.calculate_waist_width()
             short_axis = (
                 self.calculate_distance(
                     self.side.waist_start_coords, self.side.waist_end_coords
@@ -85,13 +108,7 @@ class BodyMeasurement:
 
     def calculate_bust_circumference(self) -> float:
         if self.front is not None and self.side is not None:
-            long_axis = (
-                self.calculate_distance(
-                    self.front.bust_start_coords, self.front.bust_end_coords
-                )
-                * self.front_ratio
-                / 2
-            )
+            long_axis = self.calculate_chest_width() / 2
             short_axis = (
                 self.calculate_distance(
                     self.side.bust_start_coords, self.side.bust_end_coords
@@ -172,11 +189,28 @@ class BodyMeasurement:
         else:
             return 0.0
 
+    def calculate_inseam_length(self) -> float:
+        if self.front is not None and self.side is not None:
+            return (
+                self.calculate_distance(
+                    self.front.hip_start_coords, self.front.knee_coords
+                )
+                * self.front_ratio
+                + self.calculate_distance(
+                    self.front.knee_coords, self.front.pants_bot_coords
+                )
+                * self.front_ratio
+            )
+        else:
+            return 0.0
+
     def measure_result(self):
         data = MeasureChart(
             height=self.height,
             bust_circumference=self.calculate_bust_circumference(),
+            chest_width=self.calculate_chest_width(),
             waist_circumference=self.calculate_waist_circumference(),
+            waist_width=self.calculate_waist_width(),
             hip_circumference=self.calculate_hip_circumference(),
             shoulder_width=self.calculate_shoulder_width(),
             sleeve_length=self.calculate_sleeve_length(),
