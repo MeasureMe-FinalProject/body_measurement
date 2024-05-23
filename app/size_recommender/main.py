@@ -1,11 +1,17 @@
-from typing import Literal
+from typing import Dict, Literal, Union
 
 from app.body_measurement.main import MeasureChart
+from app.size_recommender.model import InputModel, SizeRecommendationModel
 from app.size_recommender.size_chart import SizeChart
-from app.size_recommender.weight_chart import WeightChart
 
-ClothingType = Literal["T_SHIRT", "LONG_SHIRT", "SHORT_PANTS", "LONG_PANTS", "JACKET"]
+ClothingType = Literal["T_SHIRT", "LONG_SLEEVE", "SHORT_PANTS", "LONG_PANTS", "JACKET"]
+GarmentType = Literal["Tops", "Pants"]
 Gender = Literal["MALE", "FEMALE"]
+SizeRecommendation = Union[Literal["XXS", "XS", "S", "M", "L", "XL"], int]
+
+# class SizeRecommendation:
+#     def __init__(self, recommended_size: str):
+#         self.recommended_size = recommended_size
 
 
 class SizeRecommendationSystem:
@@ -15,40 +21,100 @@ class SizeRecommendationSystem:
         clothing_type: ClothingType,
         customer_measurements: MeasureChart,
     ):
+        self.gender = gender.lower()
+        self.model = SizeRecommendationModel()
         self.customer_measurements = customer_measurements
+        self.clothing_type = clothing_type
+        self.garment_type: GarmentType = "Tops"
+        self.use_model = self._should_use_model()
 
-        if gender == "MALE":
-            self.size_chart = SizeChart.MAN_SIZE_CHART
-        elif gender == "FEMALE":
-            self.size_chart = SizeChart.WOMAN_SIZE_CHART
+    def _should_use_model(self):
+        return self.clothing_type in ["T_SHIRT", "SHORT_PANTS", "JACKET"]
+
+    def recommend_size(self) -> SizeRecommendation:
+        if self.use_model:
+            return self._predict_size_with_model()
+
+        self.size_chart = self._get_size_chart()
+        if self.clothing_type == "LONG_PANTS":
+            return self._find_best_fit_longpants()
+        elif self.clothing_type == "LONG_SLEEVE":
+            return self._find_best_fit_longsleeve()
         else:
-            raise ValueError("Invalid gender")
+            raise ValueError("Unsupported clothing type for size recommendation")
 
-        if clothing_type == "T_SHIRT":
-            self.weights = WeightChart.T_SHIRT
-        elif clothing_type == "LONG_SHIRT":
-            self.weights = WeightChart.LONG_SHIRT
-        elif clothing_type == "SHORT_PANTS":
-            self.weights = WeightChart.SHORT_PANTS
-        elif clothing_type == "LONG_PANTS":
-            self.weights = WeightChart.LONG_PANTS
-        elif clothing_type == "JACKET":
-            self.weights = WeightChart.JACKET
-            self.size_chart = SizeChart.JACKET
-        else:
-            raise ValueError("Invalid clothing type")
+    def _get_size_chart(self):
+        if self.clothing_type == "LONG_PANTS":
+            if self.gender == "male":
+                return SizeChart.MALE_LONGPANTS
+            elif self.gender == "female":
+                return SizeChart.FEMALE_LONGPANTS
+        if self.clothing_type == "LONG_SLEECE":
+            if self.gender == "male":
+                return SizeChart.MALE_LONGSLEEVE
+            elif self.gender == "female":
+                return SizeChart.FEMALE_LONGSLEEVE
+        return {}
 
-    def calculate_deviation(self, measurements: MeasureChart):
-        deviations: dict = {}
+    def _find_best_fit(
+        self, size_chart, user_measurements: Dict[str, float]
+    ) -> SizeRecommendation:
+        best_fit = None
+        smallest_difference = float("inf")
 
-        for size, size_measurements in self.size_chart.items():
-            deviations[size] = sum(
-                self.weights[key] * abs(measurements[key] - size_measurements[key])
-                for key, val in measurements
+        for size, measurements in size_chart.items():
+            total_diff = self._calculate_total_difference(
+                user_measurements, measurements
             )
-        return deviations
 
-    def recommend_size(self):
-        deviations = self.calculate_deviation(self.customer_measurements)
-        recommended_size = min(deviations, key=lambda k: deviations.get(k, 0))
-        return recommended_size
+            if total_diff < smallest_difference:
+                smallest_difference = total_diff
+                best_fit = size
+
+        if best_fit is None:
+            best_fit = "XS"  # Default to XS if no suitable size is found
+
+        return best_fit
+
+    def _calculate_total_difference(
+        self, user_measurements: Dict[str, float], chart_measurements: Dict[str, float]
+    ):
+        total_diff = 0
+
+        for dim, user_value in user_measurements.items():
+            chart_value = chart_measurements.get(dim)
+            if chart_value is None:
+                continue
+
+            total_diff += abs(chart_value - user_value)
+
+        return total_diff
+
+    def _find_best_fit_longpants(self) -> SizeRecommendation:
+        measurements = {
+            "Height": self.customer_measurements.height,
+            "Waist": self.customer_measurements.waist_circumference,
+            "Pants_length": self.customer_measurements.pants_length,
+        }
+        return self._find_best_fit(self.size_chart, measurements)
+
+    def _find_best_fit_longsleeve(self) -> SizeRecommendation:
+        measurements = {
+            "Height": self.customer_measurements.height,
+            "Bust": self.customer_measurements.bust_circumference,
+            "Shoulder_width": self.customer_measurements.shoulder_width,
+            "Sleeve_length": self.customer_measurements.sleeve_length,
+        }
+        return self._find_best_fit(self.size_chart, measurements)
+
+    def _predict_size_with_model(self):
+        return self.model.predict(
+            InputModel(
+                Gender=self.gender,
+                Height=self.customer_measurements.height,
+                Garment_Type=self.garment_type,
+                Chest=self.customer_measurements.bust_circumference,
+                Waist=self.customer_measurements.waist_circumference,
+                Hip=self.customer_measurements.hip_circumference,
+            )
+        )
