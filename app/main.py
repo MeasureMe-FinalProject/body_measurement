@@ -127,6 +127,3 @@ async def calculate_measure_result(request: MeasureResultIn):
     return MeasureResultOut(
         measurement_result=measurement_result, size_recommendation=recommended_size
     )
-
-
-app.include_router(size_chart.router)

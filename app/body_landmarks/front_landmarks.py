@@ -31,6 +31,8 @@ class FrontBodyLandmarks(BodyLandmarks):
         self.pants_top_coords = self.get_pants_top()
         self.knee_coords = self.get_knee()
         self.pants_bot_coords = self.get_pants_bot()
+        self.middle_shoulder_coords = self.find_middle_shoulder()
+        self.middle_hip_coords = self.find_middle_hip()
 
     def find_shoulder_landmarks(self):
         x_offset, y_offset = self.offset_factor(0.03, 0.01)
@@ -61,6 +63,20 @@ class FrontBodyLandmarks(BodyLandmarks):
         coords = parse_coords(start_point, end_point)
         return coords
 
+    def find_middle_shoulder(self) -> Coords:
+        left_shoulder, right_shoulder = (
+            self.shoulder_left_coords,
+            self.shoulder_right_coords,
+        )
+
+        left_shoulder = (left_shoulder.x, left_shoulder.y)
+        right_shoulder = (right_shoulder.x, right_shoulder.y)
+
+        print(left_shoulder, right_shoulder)
+
+        middle_points = self.calculate_middle_point(left_shoulder, right_shoulder)
+        return Coords(x=middle_points[0], y=middle_points[1])
+
     def find_hip_landmarks(self):
         left_hip, right_hip = self.get_hip()
 
@@ -84,6 +100,15 @@ class FrontBodyLandmarks(BodyLandmarks):
         self.debug_points(x_end, y_end)
         coords = parse_coords(start_point, end_point)
         return coords
+
+    def find_middle_hip(self) -> Coords:
+        left_hip, right_hip = (self.hip_left_coords, self.hip_right_coords)
+
+        left_hip = (left_hip.x, left_hip.y)
+        right_hip = (right_hip.x, right_hip.y)
+
+        middle_points = self.calculate_middle_point(left_hip, right_hip)
+        return Coords(x=middle_points[0], y=middle_points[1])
 
     def get_bottom_of_heel(self) -> tuple[int, int]:
         left_heel, right_heel = super().get_bottom_of_heel()

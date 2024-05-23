@@ -6,20 +6,12 @@ from app.size_recommender.main import SizeRecommendationSystem
 
 class TestSizeRecommendationSystem(unittest.TestCase):
     def setUp(self):
-        self.weights = MeasureChart(
-            height=1,
-            bust_circumference=1,
-            waist_circumference=1,
-            hip_circumference=1,
-            shoulder_width=1,
-            sleeve_length=1,
-            pants_length=1,
-        )
-
         self.customer_1 = MeasureChart(
             height=155,
             bust_circumference=76,
+            chest_width=90,
             waist_circumference=68,
+            waist_width=80,
             hip_circumference=83.1,
             shoulder_width=41.6,
             sleeve_length=54.5,
@@ -29,7 +21,9 @@ class TestSizeRecommendationSystem(unittest.TestCase):
         self.customer_2 = MeasureChart(
             height=170,
             bust_circumference=88,
+            chest_width=90,
             waist_circumference=78,
+            waist_width=80,
             hip_circumference=91.5,
             shoulder_width=45.2,
             sleeve_length=57.5,
@@ -39,7 +33,6 @@ class TestSizeRecommendationSystem(unittest.TestCase):
         self.recommendation_system_1 = SizeRecommendationSystem(
             "MALE", "T_SHIRT", self.customer_1
         )
-        self.recommendation_system_1.weights = self.weights
 
         self.recommendation_system_2 = SizeRecommendationSystem(
             "MALE", "T_SHIRT", self.customer_2

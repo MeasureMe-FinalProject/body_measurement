@@ -1,156 +1,46 @@
-from fastapi import APIRouter
-
-from app.body_measurement.main import MeasureChart
-
 class SizeChart:
-    MAN_SIZE_CHART = {
-        "XS": MeasureChart(
-            height=155,
-            bust_circumference=76,
-            waist_circumference=68,
-            hip_circumference=83.1,
-            shoulder_width=41.6,
-            sleeve_length=54.5,
-            pants_length=93,
-        ),
-        "S": MeasureChart(
-            height=160,
-            bust_circumference=80,
-            waist_circumference=72,
-            hip_circumference=85.9,
-            shoulder_width=42.8,
-            sleeve_length=55.5,
-            pants_length=96,
-        ),
-        "M": MeasureChart(
-            height=165,
-            bust_circumference=84,
-            waist_circumference=74,
-            hip_circumference=88.7,
-            shoulder_width=44,
-            sleeve_length=56.5,
-            pants_length=99,
-        ),
-        "L": MeasureChart(
-            height=170,
-            bust_circumference=88,
-            waist_circumference=78,
-            hip_circumference=91.5,
-            shoulder_width=45.2,
-            sleeve_length=57.5,
-            pants_length=102,
-        ),
-        "XL": MeasureChart(
-            height=180,
-            bust_circumference=96,
-            waist_circumference=84,
-            hip_circumference=97.1,
-            shoulder_width=47.6,
-            sleeve_length=60,
-            pants_length=108,
-        ),
+    MALE_LONGPANTS = {
+        "XS": {"Height": 155, "Waist": 68, "Pants_length": 93},
+        "S": {"Height": 160, "Waist": 72, "Pants_length": 96},
+        "M": {"Height": 165, "Waist": 74, "Pants_length": 99},
+        "L": {"Height": 170, "Waist": 78, "Pants_length": 102},
+        "XL": {"Height": 175, "Waist": 80, "Pants_length": 105},
+        "XXL": {"Height": 180, "Waist": 82, "Pants_length": 108},
     }
 
-    WOMAN_SIZE_CHART = {
-        "XS": MeasureChart(
-            height=154,
-            bust_circumference=79,
-            waist_circumference=64,
-            hip_circumference=84,
-            shoulder_width=36,
-            sleeve_length=55,
-            pants_length=88,
-        ),
-        "S": MeasureChart(
-            height=159,
-            bust_circumference=83,
-            waist_circumference=68,
-            hip_circumference=87,
-            shoulder_width=38,
-            sleeve_length=56,
-            pants_length=90.5,
-        ),
-        "M": MeasureChart(
-            height=164,
-            bust_circumference=87,
-            waist_circumference=72,
-            hip_circumference=90,
-            shoulder_width=40,
-            sleeve_length=57,
-            pants_length=93.5,
-        ),
-        "L": MeasureChart(
-            height=169,
-            bust_circumference=91,
-            waist_circumference=76,
-            hip_circumference=93,
-            shoulder_width=42,
-            sleeve_length=58,
-            pants_length=96.5,
-        ),
-        "XL": MeasureChart(
-            height=174,
-            bust_circumference=95,
-            waist_circumference=81,
-            hip_circumference=97,
-            shoulder_width=44,
-            sleeve_length=59,
-            pants_length=99.5,
-        ),
+    FEMALE_LONGPANTS = {
+        "XS": {"Height": 154, "Waist": 64, "Pants_length": 88},
+        "S": {"Height": 159, "Waist": 68, "Pants_length": 90.5},
+        "M": {"Height": 164, "Waist": 72, "Pants_length": 93.5},
+        "L": {"Height": 169, "Waist": 76, "Pants_length": 96.5},
+        "XL": {"Height": 174, "Waist": 81, "Pants_length": 99.5},
+        "XXL": {"Height": 178, "Waist": 86, "Pants_length": 102.5},
     }
 
-    JACKET = {
-        "S": MeasureChart(
-            height=0,
-            shoulder_width=45,
-            sleeve_length=59,
-            bust_circumference=112,
-            waist_circumference=0,
-            hip_circumference=0,
-            pants_length=0,
-        ),
-        "M": MeasureChart(
-            height=0,
-            shoulder_width=46,
-            sleeve_length=60,
-            bust_circumference=116,
-            waist_circumference=0,
-            hip_circumference=0,
-            pants_length=0,
-        ),
-        "L": MeasureChart(
-            height=0,
-            shoulder_width=48,
-            sleeve_length=61,
-            bust_circumference=120,
-            waist_circumference=0,
-            hip_circumference=0,
-            pants_length=0,
-        ),
-        "XL": MeasureChart(
-            height=0,
-            shoulder_width=50,
-            sleeve_length=61.5,
-            bust_circumference=126,
-            waist_circumference=0,
-            hip_circumference=0,
-            pants_length=0,
-        ),
+    MALE_LONGSLEEVE = {
+        "XS": {
+            "Height": 155,
+            "Bust": 76,
+            "Shoulder_width": 41.6,
+            "Sleeve_length": 54.5,
+        },
+        "S": {"Height": 160, "Bust": 80, "Shoulder_width": 42.8, "Sleeve_length": 55.5},
+        "M": {"Height": 165, "Bust": 84, "Shoulder_width": 44, "Sleeve_length": 56.5},
+        "L": {"Height": 170, "Bust": 88, "Shoulder_width": 45.2, "Sleeve_length": 57.5},
+        "XL": {"Height": 175, "Bust": 92, "Shoulder_width": 46.4, "Sleeve_length": 59},
+        "XXL": {"Height": 180, "Bust": 96, "Shoulder_width": 47.6, "Sleeve_length": 60},
     }
 
-
-router = APIRouter(
-    prefix="/size_chart",
-    tags=["Size Chart"],
-    responses={404: {"description": "Not found"}},
-)
-
-
-@router.get("/man", response_model=dict[str, MeasureChart])
-async def get_man_size_chart():
-    return SizeChart.MAN_SIZE_CHART
-
-
-@router.get("/woman", response_model=dict[str, MeasureChart])
-async def get_woman_size_chart():
-    return SizeChart.WOMAN_SIZE_CHART
+    FEMALE_LONGSLEEVE = {
+        "XS": {"Height": 154, "Bust": 79, "Shoulder_width": 36, "Sleeve_length": 88},
+        "S": {"Height": 159, "Bust": 83, "Shoulder_width": 38, "Sleeve_length": 90.5},
+        "M": {"Height": 164, "Bust": 87, "Shoulder_width": 40, "Sleeve_length": 93.5},
+        "L": {"Height": 169, "Bust": 91, "Shoulder_width": 42, "Sleeve_length": 96.5},
+        "XL": {"Height": 174, "Bust": 95, "Shoulder_width": 44, "Sleeve_length": 99.5},
+        "XXL": {
+            "Height": 178,
+            "Bust": 99,
+            "Shoulder_width": 46,
+            "Sleeve_length": 102.5,
+        },
+    }
