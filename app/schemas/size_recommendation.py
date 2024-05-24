@@ -2,7 +2,8 @@ from pydantic import BaseModel
 
 from app.body_measurement.main import MeasureChart
 from app.schemas.body_landmarks import FrontAndSideCoordsIn
-from app.size_recommender.main import ClothingType, Gender, SizeRecommendation
+from app.size_recommender.main import ClothingType, Gender
+from app.size_recommender.size_type import SizeOutput
 
 
 class MeasureResultIn(BaseModel):
@@ -14,4 +15,4 @@ class MeasureResultIn(BaseModel):
 
 class MeasureResultOut(BaseModel):
     measurement_result: MeasureChart
-    size_recommendation: SizeRecommendation
+    size_recommendation: SizeOutput

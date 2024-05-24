@@ -1,13 +1,14 @@
-from typing import Dict, Literal, Optional, Union
+from typing import Dict, Literal, Optional
 
 from app.body_measurement.main import MeasureChart
 from app.size_recommender.model import InputModel, SizeRecommendationModel
 from app.size_recommender.size_chart import SizeChart
+from app.size_recommender.size_type import SizeOutput, SizeType
 
 ClothingType = Literal["T_SHIRT", "SHORT_PANTS", "LONG_PANTS", "JACKET"]
 GarmentType = Literal["Tops", "Pants"]
 Gender = Literal["MALE", "FEMALE"]
-SizeRecommendation = Union[Literal["XXS", "XS", "S", "M", "L", "XL", "XXL"], int]
+size_type = SizeType()
 
 
 class SizeRecommendationSystem:
@@ -27,7 +28,7 @@ class SizeRecommendationSystem:
     def _should_use_model(self):
         return self.clothing_type in ["T_SHIRT", "SHORT_PANTS", "JACKET"]
 
-    def recommend_size(self) -> SizeRecommendation:
+    def recommend_size(self) -> SizeOutput:
         if self.use_model:
             return self._predict_size_with_model()
 
@@ -57,7 +58,7 @@ class SizeRecommendationSystem:
         size_chart,
         user_measurements: Dict[str, float],
         weight_factor: Optional[Dict[str, float]] = None,
-    ) -> SizeRecommendation:
+    ) -> SizeOutput:
         best_fit = None
         smallest_difference = float("inf")
 
@@ -73,7 +74,7 @@ class SizeRecommendationSystem:
         if best_fit is None:
             best_fit = "XS"  # Default to XS if no suitable size is found
 
-        return best_fit
+        return size_type(best_fit)
 
     def _calculate_total_difference(
         self,
@@ -94,7 +95,7 @@ class SizeRecommendationSystem:
 
         return total_diff
 
-    def _find_best_fit_longpants(self) -> SizeRecommendation:
+    def _find_best_fit_longpants(self) -> SizeOutput:
         measurements = {
             "Height": self.customer_measurements.height,
             "Waist": self.customer_measurements.waist_circumference,
@@ -107,7 +108,7 @@ class SizeRecommendationSystem:
         }
         return self._find_best_fit(self.size_chart, measurements, weight_factor)
 
-    def _find_best_fit_longsleeve(self) -> SizeRecommendation:
+    def _find_best_fit_longsleeve(self) -> SizeOutput:
         measurements = {
             "Height": self.customer_measurements.height,
             "Bust": self.customer_measurements.bust_circumference,
@@ -117,7 +118,7 @@ class SizeRecommendationSystem:
         return self._find_best_fit(self.size_chart, measurements)
 
     def _predict_size_with_model(self):
-        return self.model.predict(
+        prediction = self.model.predict(
             InputModel(
                 Gender=self.gender,
                 Height=self.customer_measurements.height,
@@ -127,3 +128,5 @@ class SizeRecommendationSystem:
                 Hip=self.customer_measurements.hip_circumference,
             )
         )
+
+        return size_type(prediction)
