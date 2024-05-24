@@ -4,14 +4,10 @@ from app.body_measurement.main import MeasureChart
 from app.size_recommender.model import InputModel, SizeRecommendationModel
 from app.size_recommender.size_chart import SizeChart
 
-ClothingType = Literal["T_SHIRT", "LONG_SLEEVE", "SHORT_PANTS", "LONG_PANTS", "JACKET"]
+ClothingType = Literal["T_SHIRT", "SHORT_PANTS", "LONG_PANTS", "JACKET"]
 GarmentType = Literal["Tops", "Pants"]
 Gender = Literal["MALE", "FEMALE"]
-SizeRecommendation = Union[Literal["XXS", "XS", "S", "M", "L", "XL"], int]
-
-# class SizeRecommendation:
-#     def __init__(self, recommended_size: str):
-#         self.recommended_size = recommended_size
+SizeRecommendation = Union[Literal["XXS", "XS", "S", "M", "L", "XL", "XXL"], int]
 
 
 class SizeRecommendationSystem:
