@@ -7,12 +7,13 @@ RUN pip install gdown
 WORKDIR /app
 
 RUN apt-get update -y
+RUN apt-get install unzip -y
 RUN apt install libgl1-mesa-glx -y
 RUN apt-get install 'ffmpeg' -y
 
 #
 RUN gdown --id 1Jjsaixfk0n18xE1ks3SWEPD8Edozu0ZR -O /app/models.zip && \
-    unzip /app/models.zip && \
+    unzip /app/models.zip -d /app/app && \
     rm /app/models.zip
 
 COPY . /app
