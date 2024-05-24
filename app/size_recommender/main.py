@@ -1,4 +1,4 @@
-from typing import Dict, Literal, Union
+from typing import Dict, Literal, Optional, Union
 
 from app.body_measurement.main import MeasureChart
 from app.size_recommender.model import InputModel, SizeRecommendationModel
@@ -53,14 +53,17 @@ class SizeRecommendationSystem:
         return {}
 
     def _find_best_fit(
-        self, size_chart, user_measurements: Dict[str, float]
+        self,
+        size_chart,
+        user_measurements: Dict[str, float],
+        weight_factor: Optional[Dict[str, float]] = None,
     ) -> SizeRecommendation:
         best_fit = None
         smallest_difference = float("inf")
 
         for size, measurements in size_chart.items():
             total_diff = self._calculate_total_difference(
-                user_measurements, measurements
+                user_measurements, measurements, weight_factor
             )
 
             if total_diff < smallest_difference:
@@ -73,16 +76,21 @@ class SizeRecommendationSystem:
         return best_fit
 
     def _calculate_total_difference(
-        self, user_measurements: Dict[str, float], chart_measurements: Dict[str, float]
+        self,
+        user_measurements: Dict[str, float],
+        chart_measurements: Dict[str, float],
+        weight_factor: Optional[Dict[str, float]] = None,
     ):
         total_diff = 0
+        weight_factor = weight_factor or {}
 
         for dim, user_value in user_measurements.items():
             chart_value = chart_measurements.get(dim)
             if chart_value is None:
                 continue
 
-            total_diff += abs(chart_value - user_value)
+            weight = weight_factor.get(dim, 1.0)
+            total_diff += weight * abs(chart_value - user_value)
 
         return total_diff
 
@@ -92,7 +100,12 @@ class SizeRecommendationSystem:
             "Waist": self.customer_measurements.waist_circumference,
             "Pants_length": self.customer_measurements.pants_length,
         }
-        return self._find_best_fit(self.size_chart, measurements)
+        weight_factor = {
+            "Waist": 2.0,
+            "Height": 1.0,
+            "Pants_length": 1.0,
+        }
+        return self._find_best_fit(self.size_chart, measurements, weight_factor)
 
     def _find_best_fit_longsleeve(self) -> SizeRecommendation:
         measurements = {

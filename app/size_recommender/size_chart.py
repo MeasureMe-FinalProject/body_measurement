@@ -1,20 +1,30 @@
 class SizeChart:
     MALE_LONGPANTS = {
-        "XS": {"Height": 155, "Waist": 68, "Pants_length": 93},
-        "S": {"Height": 160, "Waist": 72, "Pants_length": 96},
-        "M": {"Height": 165, "Waist": 74, "Pants_length": 99},
-        "L": {"Height": 170, "Waist": 78, "Pants_length": 102},
-        "XL": {"Height": 175, "Waist": 80, "Pants_length": 105},
-        "XXL": {"Height": 180, "Waist": 82, "Pants_length": 108},
+        27: {"Height": 155, "Waist": 69.85, "Pants_length": 93},
+        28: {"Height": 155, "Waist": 72.39, "Pants_length": 93},
+        29: {"Height": 160, "Waist": 74.93, "Pants_length": 96},
+        30: {"Height": 160, "Waist": 77.47, "Pants_length": 96},
+        31: {"Height": 165, "Waist": 80.01, "Pants_length": 99},
+        32: {"Height": 165, "Waist": 82.55, "Pants_length": 99},
+        33: {"Height": 170, "Waist": 85.09, "Pants_length": 102},
+        34: {"Height": 170, "Waist": 87.63, "Pants_length": 102},
+        36: {"Height": 175, "Waist": 92.71, "Pants_length": 105},
+        38: {"Height": 175, "Waist": 97.79, "Pants_length": 105},
+        40: {"Height": 180, "Waist": 102.87, "Pants_length": 108},
     }
 
     FEMALE_LONGPANTS = {
-        "XS": {"Height": 154, "Waist": 64, "Pants_length": 88},
-        "S": {"Height": 159, "Waist": 68, "Pants_length": 90.5},
-        "M": {"Height": 164, "Waist": 72, "Pants_length": 93.5},
-        "L": {"Height": 169, "Waist": 76, "Pants_length": 96.5},
-        "XL": {"Height": 174, "Waist": 81, "Pants_length": 99.5},
-        "XXL": {"Height": 178, "Waist": 86, "Pants_length": 102.5},
+        25: {"Height": 154, "Waist": 69.85, "Pants_length": 88},
+        26: {"Height": 159, "Waist": 72.39, "Pants_length": 90.5},
+        27: {"Height": 159, "Waist": 74.93, "Pants_length": 90.5},
+        28: {"Height": 164, "Waist": 77.47, "Pants_length": 93.5},
+        29: {"Height": 164, "Waist": 80.01, "Pants_length": 93.5},
+        30: {"Height": 169, "Waist": 82.55, "Pants_length": 96.5},
+        31: {"Height": 169, "Waist": 85.09, "Pants_length": 96.5},
+        32: {"Height": 174, "Waist": 87.63, "Pants_length": 99.5},
+        33: {"Height": 174, "Waist": 92.71, "Pants_length": 99.5},
+        34: {"Height": 178, "Waist": 97.79, "Pants_length": 102.5},
+        36: {"Height": 178, "Waist": 102.87, "Pants_length": 102.5},
     }
 
     MALE_LONGSLEEVE = {
