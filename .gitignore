@@ -3,4 +3,5 @@ __pycache__/
 .ruff_cache/
 images/*.jpg
 res/*.jpg
+models/
 ```
