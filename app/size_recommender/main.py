@@ -22,7 +22,9 @@ class SizeRecommendationSystem:
         self.model = SizeRecommendationModel()
         self.customer_measurements = customer_measurements
         self.clothing_type = clothing_type
-        self.garment_type: GarmentType = "Tops"
+        self.garment_type: GarmentType = (
+            "Tops" if self.clothing_type == "T_SHIRT" else "Pants"
+        )
         self.use_model = self._should_use_model()
 
     def _should_use_model(self):
@@ -46,11 +48,6 @@ class SizeRecommendationSystem:
                 return SizeChart.MALE_LONGPANTS
             elif self.gender == "female":
                 return SizeChart.FEMALE_LONGPANTS
-        if self.clothing_type == "LONG_SLEECE":
-            if self.gender == "male":
-                return SizeChart.MALE_LONGSLEEVE
-            elif self.gender == "female":
-                return SizeChart.FEMALE_LONGSLEEVE
         return {}
 
     def _find_best_fit(
@@ -128,5 +125,4 @@ class SizeRecommendationSystem:
                 Hip=self.customer_measurements.hip_circumference,
             )
         )
-
         return size_type(prediction)

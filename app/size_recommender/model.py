@@ -76,6 +76,7 @@ class SizeRecommendationModel:
         elif input_model.Garment_Type == "Pants":
             prediction = self.pants_model.predict(X).astype(int)
             encoded = self.pants_label_encoder.inverse_transform(prediction)[0]
+            encoded = int(encoded)
         elif input_model.Garment_Type == "Jacket":
             prediction = self.pants_model.predict(X).astype(int)
             encoded = self.jacket_label_encoder.inverse_transform(prediction)[0]
