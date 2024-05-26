@@ -6,7 +6,7 @@ from app.size_recommender.size_chart import SizeChart
 from app.size_recommender.size_type import SizeOutput, SizeType
 
 ClothingType = Literal["T_SHIRT", "SHORT_PANTS", "LONG_PANTS", "JACKET"]
-GarmentType = Literal["Tops", "Pants"]
+GarmentType = Literal["Tops", "Pants", "Jacket"]
 Gender = Literal["MALE", "FEMALE"]
 size_type = SizeType()
 
@@ -23,7 +23,11 @@ class SizeRecommendationSystem:
         self.customer_measurements = customer_measurements
         self.clothing_type = clothing_type
         self.garment_type: GarmentType = (
-            "Tops" if self.clothing_type == "T_SHIRT" else "Pants"
+            "Tops"
+            if self.clothing_type == "T_SHIRT"
+            else "Pants"
+            if self.clothing_type == "SHORT_PANTS"
+            else "Jacket"
         )
         self.use_model = self._should_use_model()
 

@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 class InputModel(BaseModel):
     Gender: str
-    Garment_Type: Literal["Tops", "Pants"]
+    Garment_Type: Literal["Tops", "Pants", "Jacket"]
     Height: Optional[float] = None
     Chest: Optional[float] = None
     Waist: Optional[float] = None
@@ -78,7 +78,7 @@ class SizeRecommendationModel:
             encoded = self.pants_label_encoder.inverse_transform(prediction)[0]
             encoded = int(encoded)
         elif input_model.Garment_Type == "Jacket":
-            prediction = self.pants_model.predict(X).astype(int)
+            prediction = self.jacket_model.predict(X).astype(int)
             encoded = self.jacket_label_encoder.inverse_transform(prediction)[0]
 
         return encoded
