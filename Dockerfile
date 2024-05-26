@@ -1,25 +1,30 @@
-# 
+# Use an official Python runtime as a parent image
 FROM python:3.11-slim
 
-RUN pip install gdown
-
-# 
+# Set the working directory to /app
 WORKDIR /app
 
-RUN apt-get update -y
-RUN apt-get install unzip -y
-RUN apt install libgl1-mesa-glx -y
-RUN apt-get install 'ffmpeg' -y
+# Install necessary system dependencies
+RUN apt-get update -y && \
+    apt-get install -y unzip libgl1-mesa-glx ffmpeg && \
+    rm -rf /var/lib/apt/lists/*
 
-#
-RUN gdown --id 1Jjsaixfk0n18xE1ks3SWEPD8Edozu0ZR -O /app/models.zip && \
+# Install gdown
+RUN pip install --no-cache-dir gdown
+
+# Download and extract models
+RUN gdown 1Jjsaixfk0n18xE1ks3SWEPD8Edozu0ZR -O /app/models.zip && \
     unzip /app/models.zip -d /app/app && \
     rm /app/models.zip
 
-COPY . /app
+# Copy requirements file first to leverage Docker cache for dependencies
+COPY requirements.txt /app/
 
-# 
+# Install Python dependencies
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
+
+# Copy the rest of the application code
+COPY . /app
 
 # Make port 8000 available to the world outside this container
 EXPOSE 8000
